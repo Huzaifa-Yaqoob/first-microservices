@@ -1,6 +1,5 @@
 import { plainToInstance } from 'class-transformer';
 import {
-  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsString,
@@ -9,15 +8,7 @@ import {
   validateSync,
 } from 'class-validator';
 
-enum Environment {
-  Development = 'development',
-  Production = 'production',
-}
-
 class EnvironmentVariables {
-  @IsEnum(Environment)
-  NODE_ENV: Environment;
-
   @IsNumber()
   @Min(0)
   @Max(65535)
@@ -26,6 +17,10 @@ class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   MONGODB_URI: string;
+
+  @IsString()
+  @IsNotEmpty()
+  MONGODB_DBNAME: string;
 }
 
 export function validate(config: Record<string, unknown>) {
