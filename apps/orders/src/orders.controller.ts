@@ -10,4 +10,9 @@ export class OrdersController {
   createOrder(@Body() order: CreateOrderRequest) {
     return this.ordersService.createOrder(order);
   }
+
+  @Get()
+  getAllOrders() {
+    return this.ordersService.getAllOrders();
+  }
 }

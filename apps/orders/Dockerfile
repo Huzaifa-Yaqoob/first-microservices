@@ -30,6 +30,6 @@ RUN pnpm install --frozen-lockfile --only=production
 
 COPY . .
 
-COPY --from=development app/dist ./dist
+RUN pnpm run build
 
-CMD ["node", "dist/apps/orders/main"]
+CMD ["pnpm", "run", "start:prod"]
