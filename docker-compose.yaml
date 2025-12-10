@@ -1,5 +1,8 @@
+version: '3.8'
+
 services:
   orders:
+    # ... (orders service definition remains the same)
     build:
       context: .
       dockerfile: ./apps/orders/Dockerfile
@@ -8,27 +11,74 @@ services:
     env_file:
       - ./apps/orders/.env
     depends_on:
-      - mongodb
+      - mongodb-primary
+      - mongodb-secondary
+      - mongodb-arbiter
       - rabbitmq
+      - billing
     volumes:
       - .:/app
       - /app/node_modules
     ports:
       - '3000:3000'
+
+  billing:
+    # ... (billing service definition remains the same)
+    build:
+      context: .
+      dockerfile: ./apps/billing/Dockerfile
+      target: development
+    command: npm run start:dev billing
+    env_file:
+      - ./apps/billing/.env
+    depends_on:
+      - mongodb-primary
+      - mongodb-secondary
+      - mongodb-arbiter
+      - rabbitmq
+    volumes:
+      - .:/app
+      - /app/node_modules
+
   rabbitmq:
     image: rabbitmq:4.1.6-management-alpine
     ports:
       - '5672:5672'
-  mongodb:
-    image: mongodb/mongodb-enterprise-server:7.0-ubi8
-    container_name: mongo-enterprise
+
+  # --- UPDATED MONGODB CONFIGURATION ---
+  mongodb-primary:
+    image: bitnami/mongodb:latest
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: password123
-    ports:
-      - "27018:27017"
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-primary
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_ROOT_PASSWORD=password123
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
     volumes:
-      - mongo_data:/data/db
+      - 'mongodb_master_data:/bitnami/mongodb'
+
+  mongodb-secondary:
+    image: bitnami/mongodb:latest
+    depends_on:
+      - mongodb-primary
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-secondary
+      - MONGODB_REPLICA_SET_MODE=secondary
+      - MONGODB_INITIAL_PRIMARY_HOST=mongodb-primary
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=password123
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+
+  mongodb-arbiter:
+    image: bitnami/mongodb:latest
+    depends_on:
+      - mongodb-primary
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-arbiter
+      - MONGODB_REPLICA_SET_MODE=arbiter
+      - MONGODB_INITIAL_PRIMARY_HOST=mongodb-primary
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=password123
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
 
 volumes:
-  mongo_data:
+  mongodb_master_data:
+    driver:
+      local

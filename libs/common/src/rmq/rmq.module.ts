@@ -27,6 +27,7 @@ export class RmqModule {
           },
         ]),
       ],
+      exports: [ClientsModule],
     };
   }
 }

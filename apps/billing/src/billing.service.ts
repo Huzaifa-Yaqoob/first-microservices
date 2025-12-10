@@ -5,4 +5,8 @@ export class BillingService {
   getHello(): string {
     return 'Hello World!';
   }
+
+  async handleOrderCreated(order: any) {
+    console.log(order);
+  }
 }
