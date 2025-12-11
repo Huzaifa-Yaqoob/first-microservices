@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { validate } from './helper/validate.env';
 import { JwtModule } from '@nestjs/jwt';
 import { DatabaseAbstractModule, RmqModule } from '@app/common';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { DatabaseAbstractModule, RmqModule } from '@app/common';
       inject: [ConfigService],
     }),
     RmqModule,
+    UsersModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],

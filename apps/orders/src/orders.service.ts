@@ -1,33 +1,36 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { OrdersRepository } from './order.repository';
-import { CreateOrderRequest } from './dto/create-order.request';
-import { BILLING_SERVICE } from './helper/constant';
 import { ClientProxy } from '@nestjs/microservices';
+import { lastValueFrom } from 'rxjs';
+import { BILLING_SERVICE } from './helper/constant';
+import { CreateOrderRequest } from './dto/create-order.request';
+import { OrdersRepository } from './order.repository';
 
 @Injectable()
 export class OrdersService {
   constructor(
-    private readonly orderRepository: OrdersRepository,
-    @Inject(BILLING_SERVICE) private readonly billingClient: ClientProxy,
+    private readonly ordersRepository: OrdersRepository,
+    @Inject(BILLING_SERVICE) private billingClient: ClientProxy,
   ) {}
 
-  async createOrder(order: CreateOrderRequest) {
-    console.log('in order service');
-    const session = await this.orderRepository.startTransaction();
+  async createOrder(request: CreateOrderRequest, authentication: string) {
+    const session = await this.ordersRepository.startTransaction();
     try {
-      const createdOrder = await this.orderRepository.create(order, {
-        session,
-      });
-      this.billingClient.emit('create-order', createdOrder);
+      const order = await this.ordersRepository.create(request, { session });
+      await lastValueFrom(
+        this.billingClient.emit('order_created', {
+          request,
+          Authentication: authentication,
+        }),
+      );
       await session.commitTransaction();
-      return createdOrder;
-    } catch (e) {
+      return order;
+    } catch (err) {
       await session.abortTransaction();
-      throw e;
+      throw err;
     }
   }
 
-  async getAllOrders() {
-    return await this.orderRepository.find({});
+  async getOrders() {
+    return this.ordersRepository.find({});
   }
 }
