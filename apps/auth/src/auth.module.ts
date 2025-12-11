@@ -6,6 +6,8 @@ import { validate } from './helper/validate.env';
 import { JwtModule } from '@nestjs/jwt';
 import { DatabaseAbstractModule, RmqModule } from '@app/common';
 import { UsersModule } from './users/users.module';
+import { LocalStrategy } from './strategies/local.strategy';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   imports: [
@@ -28,6 +30,6 @@ import { UsersModule } from './users/users.module';
     UsersModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, LocalStrategy, JwtStrategy],
 })
 export class AuthModule {}

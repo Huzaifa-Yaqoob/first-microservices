@@ -13,7 +13,7 @@ export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
   async createUser(request: CreateUserRequest) {
-    await this.validateCreateUserRequest(request);
+    // await this.validateCreateUserRequest(request);
     const user = await this.usersRepository.create({
       ...request,
       password: await bcrypt.hash(request.password, 10),
