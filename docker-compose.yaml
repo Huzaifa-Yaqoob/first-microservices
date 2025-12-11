@@ -73,6 +73,8 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+    ports:
+      - '3001:3001'
 
   rabbitmq:
     image: rabbitmq:4.1.6-management-alpine
