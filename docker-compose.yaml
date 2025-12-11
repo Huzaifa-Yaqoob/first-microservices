@@ -19,6 +19,8 @@ services:
         condition: service_started
       billing:
         condition: service_started
+      auth:
+        condition: service_started
       rabbitmq:
         condition: service_healthy
     volumes:
@@ -36,6 +38,29 @@ services:
     command: npm run start:dev billing
     env_file:
       - ./apps/billing/.env
+    depends_on:
+      mongodb-primary:
+        condition: service_started
+      mongodb-secondary:
+        condition: service_started
+      mongodb-arbiter:
+        condition: service_started
+      auth:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+  auth:
+    # ... (billing service definition remains the same)
+    build:
+      context: .
+      dockerfile: ./apps/auth/Dockerfile
+      target: development
+    command: npm run start:dev auth
+    env_file:
+      - ./apps/auth/.env
     depends_on:
       mongodb-primary:
         condition: service_started
